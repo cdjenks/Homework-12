@@ -128,17 +128,9 @@ function addCompanyData() {
     });
 }
 
-// inquirer.prompt()  //get employee first + last
-// connection.query // search table for employee
-// if (employee) {
-//  connection.query // get available roles
-//  inquire.prompt
-// }
-//else no eployee found
-
 function updateEmployeeRole() {
   connection.query(
-    "SELECT employees.id, first_name, last_name, title, role_id FROM employees INNER JOIN company_role ON employees.role_id = company_role.id",
+    "SELECT employees.id, first_name, last_name, title, role_id FROM employees RIGHT JOIN company_role ON employees.role_id = company_role.id",
     function (err, results) {
       inquirer
         .prompt([
@@ -146,10 +138,17 @@ function updateEmployeeRole() {
             name: "selectedEmployee",
             type: "rawlist",
             choices: function () {
+              var choiceArray = [];
               for (var i = 0; i < results.length; i++) {
                 let employeeName =
-                  results[i].first_name + " " + results[i].last_name;
-                choiceArray.push(employeeName);
+                  results[i].first_name +
+                  " " +
+                  results[i].last_name +
+                  " | current role: " +
+                  results[i].title;
+                if (results[i].first_name !== null) {
+                  choiceArray.push(employeeName);
+                }
               }
               return choiceArray;
             },
@@ -171,16 +170,33 @@ function updateEmployeeRole() {
           },
         ])
         .then(function (answers) {
+          let employeeId;
+          let updatedRoleId;
           for (var i = 0; i < results.length; i++) {
-            let combinedManagerName =
-              results[i].first_name + " " + results[i].last_name;
-            if (combinedManagerName === answers.manager) {
-              selectedManagerId = results[i].id;
-            }
-            if (results[i].title === answers.title) {
-              selectedRoleId = results[i].role_id;
+            if (results[i].title === answers.newRole) {
+              updatedRoleId = results[i].role_id;
             }
           }
+          for (var i = 0; i < results.length; i++) {
+            let selectedEmployeeName =
+              results[i].first_name +
+              " " +
+              results[i].last_name +
+              " | current role: " +
+              results[i].title;
+            if (selectedEmployeeName === answers.selectedEmployee) {
+              console.log("yay");
+              employeeId = results[i].id;
+            }
+          }
+          connection.query(
+            `UPDATE employees SET employees.role_id = ${updatedRoleId} WHERE employees.id = ${employeeId}`,
+            function (err, results) {
+              if (err) throw err;
+              console.log("Role updated successfully");
+              determineRequest();
+            }
+          );
         });
     }
   );
@@ -243,7 +259,7 @@ function addEmployee() {
             name: "manager",
             type: "rawlist",
             choices: function () {
-              var choiceArray = ["None"];
+              var choiceArray = ["N/A"];
               for (var i = 0; i < results.length; i++) {
                 let managerName =
                   results[i].first_name + " " + results[i].last_name;
