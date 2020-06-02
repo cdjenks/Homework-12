@@ -128,80 +128,6 @@ function addCompanyData() {
     });
 }
 
-function updateEmployeeRole() {
-  connection.query(
-    "SELECT employees.id, first_name, last_name, title, role_id FROM employees RIGHT JOIN company_role ON employees.role_id = company_role.id",
-    function (err, results) {
-      inquirer
-        .prompt([
-          {
-            name: "selectedEmployee",
-            type: "rawlist",
-            choices: function () {
-              var choiceArray = [];
-              for (var i = 0; i < results.length; i++) {
-                let employeeName =
-                  results[i].first_name +
-                  " " +
-                  results[i].last_name +
-                  " | current role: " +
-                  results[i].title;
-                if (results[i].first_name !== null) {
-                  choiceArray.push(employeeName);
-                }
-              }
-              return choiceArray;
-            },
-            message: "Select the employee you will be updating",
-          },
-          {
-            name: "newRole",
-            type: "rawlist",
-            choices: function () {
-              var choiceArray = [];
-              for (var i = 0; i < results.length; i++) {
-                if (!choiceArray.includes(results[i].title)) {
-                  choiceArray.push(results[i].title);
-                }
-              }
-              return choiceArray;
-            },
-            message: "Select the new role of this employee",
-          },
-        ])
-        .then(function (answers) {
-          let employeeId;
-          let updatedRoleId;
-          for (var i = 0; i < results.length; i++) {
-            if (results[i].title === answers.newRole) {
-              updatedRoleId = results[i].role_id;
-            }
-          }
-          for (var i = 0; i < results.length; i++) {
-            let selectedEmployeeName =
-              results[i].first_name +
-              " " +
-              results[i].last_name +
-              " | current role: " +
-              results[i].title;
-            if (selectedEmployeeName === answers.selectedEmployee) {
-              console.log("yay");
-              employeeId = results[i].id;
-            }
-          }
-          connection.query(
-            `UPDATE employees SET employees.role_id = ${updatedRoleId} WHERE employees.id = ${employeeId}`,
-            function (err, results) {
-              if (err) throw err;
-              console.log("Role updated successfully");
-              determineRequest();
-            }
-          );
-        });
-    }
-  );
-}
-
 function addDepartment() {
   inquirer
     .prompt({
@@ -349,4 +275,78 @@ function addRole() {
         console.error(e);
       });
   });
+}
+
+function updateEmployeeRole() {
+  connection.query(
+    "SELECT employees.id, first_name, last_name, title, role_id FROM employees RIGHT JOIN company_role ON employees.role_id = company_role.id",
+    function (err, results) {
+      inquirer
+        .prompt([
+          {
+            name: "selectedEmployee",
+            type: "rawlist",
+            choices: function () {
+              var choiceArray = [];
+              for (var i = 0; i < results.length; i++) {
+                let employeeName =
+                  results[i].first_name +
+                  " " +
+                  results[i].last_name +
+                  " | current role: " +
+                  results[i].title;
+                if (results[i].first_name !== null) {
+                  choiceArray.push(employeeName);
+                }
+              }
+              return choiceArray;
+            },
+            message: "Select the employee you will be updating",
+          },
+          {
+            name: "newRole",
+            type: "rawlist",
+            choices: function () {
+              var choiceArray = [];
+              for (var i = 0; i < results.length; i++) {
+                if (!choiceArray.includes(results[i].title)) {
+                  choiceArray.push(results[i].title);
+                }
+              }
+              return choiceArray;
+            },
+            message: "Select the new role of this employee",
+          },
+        ])
+        .then(function (answers) {
+          let employeeId;
+          let updatedRoleId;
+          for (var i = 0; i < results.length; i++) {
+            if (results[i].title === answers.newRole) {
+              updatedRoleId = results[i].role_id;
+            }
+          }
+          for (var i = 0; i < results.length; i++) {
+            let selectedEmployeeName =
+              results[i].first_name +
+              " " +
+              results[i].last_name +
+              " | current role: " +
+              results[i].title;
+            if (selectedEmployeeName === answers.selectedEmployee) {
+              console.log("yay");
+              employeeId = results[i].id;
+            }
+          }
+          connection.query(
+            `UPDATE employees SET employees.role_id = ${updatedRoleId} WHERE employees.id = ${employeeId}`,
+            function (err, results) {
+              if (err) throw err;
+              console.log("Role updated successfully");
+              determineRequest();
+            }
+          );
+        });
+    }
+  );
 }
