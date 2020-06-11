@@ -108,7 +108,7 @@ function addCompanyData() {
     .prompt({
       name: "action",
       type: "rawlist",
-      message: "Are adding a department, role, or employee?",
+      message: "Are you adding a department, role, or employee?",
       choices: ["Department", "Role", "Employee"],
     })
     .then(function (answer) {
@@ -152,7 +152,7 @@ function addDepartment() {
 
 function addEmployee() {
   connection.query(
-    "SELECT employees.id, first_name, last_name, title, role_id FROM employees INNER JOIN company_role ON employees.role_id = company_role.id",
+    "SELECT employees.id, first_name, last_name, title, role_id FROM employees RIGHT JOIN company_role ON employees.role_id = company_role.id",
     function (err, results) {
       if (err) throw err;
       inquirer
@@ -197,10 +197,9 @@ function addEmployee() {
           },
         ])
         .then(function (answers) {
-          if (answers.manager === "None") {
+          if (answers.manager === "N/A") {
             selectedManagerId = null;
           }
-
           for (var i = 0; i < results.length; i++) {
             let combinedManagerName =
               results[i].first_name + " " + results[i].last_name;
